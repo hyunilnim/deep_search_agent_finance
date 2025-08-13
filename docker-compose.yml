@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   deep_search_agent:
     build:

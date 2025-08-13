@@ -22,9 +22,5 @@ COPY . .
 # 포트 9022 노출
 EXPOSE 9022
 
-# 환경 변수 설정
-ENV HOST=0.0.0.0
-ENV PORT=9022
-
 # 애플리케이션 실행
 CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "9022"] 
