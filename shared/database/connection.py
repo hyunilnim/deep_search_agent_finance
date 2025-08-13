@@ -4,12 +4,15 @@ import aiomysql
 import pymysql
 from typing import Optional, List, Dict, Any
 import logging
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
     def __init__(self):
+        # .env 파일 로드
+        load_dotenv()
         self._config = self._load_config()
         self._async_pool: Optional[aiomysql.Pool] = None
         self._sync_connection: Optional[pymysql.Connection] = None
