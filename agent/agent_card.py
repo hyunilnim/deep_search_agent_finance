@@ -26,6 +26,7 @@ def _load_agent_record_by_folder() -> dict | None:
     conn = _get_db_connection()
     try:
         with conn.cursor() as cursor:
+
             def _snake_to_title(s: str) -> str:
                 return " ".join(word.capitalize() for word in s.split("_"))
 
@@ -87,7 +88,7 @@ def build_agent_card(host: str, port: int) -> AgentCard:
     return AgentCard(
         name=record["name"],
         description=record["description"],
-        url=f"http://{host}:{port}/",
+        url=record["base_url"],
         version="1.0.0",
         defaultInputModes=default_input_modes,
         defaultOutputModes=default_output_modes,

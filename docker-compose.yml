@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  deep_search_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9022:9022"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=9022
+      - DB_HOST=34.64.86.78
+      - DB_PORT=3306
+      - DB_USER=ah-user
+      - DB_PASSWORD=ah2025
+      - DB_NAME=ahdb
+      - PERPLEXITY_API_KEY=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
+      - GOOGLE_API_KEY=AIzaSyCp7gV7FMqExZkUDITTQWqhO65QpSWbxaQ
+      - GOOGLE_GENAI_USE_VERTEXAI=FALSE
+      - AGENT_CACHE_DURATION=600
+      - DISCOVERY_CACHE_DURATION=600
+
+    restart: unless-stopped 
