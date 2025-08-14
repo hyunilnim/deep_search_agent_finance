@@ -61,11 +61,15 @@ class PerplexityCostCalculator:
             계산된 사용료 정보
         """
         try:
-            # usage에서 각 필드 추출
-            input_tokens = usage.get("input_tokens", 0)
-            output_tokens = usage.get("output_tokens", 0)
+            # usage에서 각 필드 추출 (Perplexity API 필드명에 맞춤)
+            input_tokens = usage.get("prompt_tokens", usage.get("input_tokens", 0))
+            output_tokens = usage.get(
+                "completion_tokens", usage.get("output_tokens", 0)
+            )
             citation_tokens = usage.get("citation_tokens", 0)
-            search_queries = usage.get("search_queries", 0)
+            search_queries = usage.get(
+                "num_search_queries", usage.get("search_queries", 0)
+            )
             reasoning_tokens = usage.get("reasoning_tokens", 0)
 
             # 각 항목별 비용 계산
