@@ -7,6 +7,7 @@ import os
 import aiohttp
 import asyncio
 from agent.agent_tools import perplexity_deep_research_tool
+from agent.cost_calculator import PerplexityCostCalculator
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.sessions import InMemorySessionService
@@ -137,6 +138,16 @@ class DeepSearchAgent:
                 session_service=InMemorySessionService(),
             )
 
+        # 사용료 계산기 초기화
+        cost_calculator = PerplexityCostCalculator("sonar-deep-research")
+        total_usage = {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "citation_tokens": 0,
+            "search_queries": 0,
+            "reasoning_tokens": 0,
+        }
+
         try:
             # 세션 처리
             session = await self.runner.session_service.get_session(
@@ -168,6 +179,14 @@ class DeepSearchAgent:
 
                 event_dict = event.dict()
 
+                # 사용료 정보 추출 및 누적
+                if "usage" in event_dict:
+                    usage = event_dict["usage"]
+                    for key in total_usage:
+                        if key in usage:
+                            total_usage[key] += usage[key]
+                    logger.info(f"Usage accumulated: {total_usage}")
+
                 # 함수 응답 처리 (Google ADK의 자동 함수 호출 결과)
                 # if 'function_responses' in event_dict and event_dict['function_responses']:
                 #     for response in event_dict['function_responses']:
@@ -194,12 +213,37 @@ class DeepSearchAgent:
                         # answer가 딕셔너리인 경우 JSON 문자열로 변환
                         if isinstance(answer, dict):
                             answer = json.dumps(answer, ensure_ascii=False)
-                        yield answer
+
+                        # 사용료 계산 및 추가
+                        cost_info = cost_calculator.calculate_cost(total_usage)
+                        cost_summary = cost_calculator.format_cost_summary(cost_info)
+
+                        # 응답에 사용료 정보 추가
+                        final_response = {
+                            "answer": answer,
+                            "cost_info": cost_info,
+                            "cost_summary": cost_summary,
+                        }
+
+                        yield json.dumps(final_response, ensure_ascii=False)
                         break
                     except json.JSONDecodeError:
                         # 2. 일반 텍스트로 처리
                         if len(text.strip()) > 10:
-                            yield text.strip()
+                            # 사용료 계산 및 추가
+                            cost_info = cost_calculator.calculate_cost(total_usage)
+                            cost_summary = cost_calculator.format_cost_summary(
+                                cost_info
+                            )
+
+                            # 응답에 사용료 정보 추가
+                            final_response = {
+                                "answer": text.strip(),
+                                "cost_info": cost_info,
+                                "cost_summary": cost_summary,
+                            }
+
+                            yield json.dumps(final_response, ensure_ascii=False)
                             break
 
                 yield event
